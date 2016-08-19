@@ -56,7 +56,7 @@ if __name__ == '__main__':
     inFifo = Queue()
 #    start = 1438416600
     start = 1438500000
-    bgpsource = BGPStream(inFifo, bgpDump, start, start + 500)
+    bgpsource = BGPStream(inFifo, bgpDump, start, start + 60)
     fd = FlaggerProcess(flaggerPipe, inFifo, table)
 
     bgpsource.start()
@@ -68,7 +68,7 @@ if __name__ == '__main__':
 
     print(nx.number_of_nodes(graphFlagger.G))
     print(nx.number_of_edges(graphFlagger.G))
-#    print(table.toJson())
+    print(table.toJson())
 #    thebytes = pickle.dump(table)
     tableDump.insert({'time': datetime.datetime.now().time().isoformat(),'tableDump':table.toJson()})
 
