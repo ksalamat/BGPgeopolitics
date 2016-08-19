@@ -50,7 +50,6 @@ if __name__ == '__main__':
     routingDynamicFlagger=RoutingDynamicFlagger(table)
     flaggerPipe = FlaggerPipe()
     flaggerPipe.append(geoFlagger)
-    flaggerPipe.append(routingDynamicFlagger)
     flaggerPipe.append(graphFlagger)
 
 

@@ -20,14 +20,18 @@ class RoutingDynamicFlagger(Flagger):
                 [path] =annoucedPath
                 if path.active :
                     if (path.path == route.fields['asPath']):
+                        path.AADup+=1
                         return 1 ##AADup
                     else :
+                        path.AADiff+=1
                         return 2  ##AADiff
                 else:
                     if (route.time-path.lastChange<300):
                         if (path.path==route.fields['asPath']):
+                            path.WADup+=1
                             return 3 ##WADup
                         else:
+                            path.WADiff+=1
                             return 4  ##WADiff
         elif route.message=='withdrawal':
             annoucedPath = [path for path in bgpEntry.paths if path.peerASn == route.peer['asn']]
@@ -49,8 +53,11 @@ class RoutingDynamicFlagger(Flagger):
         status =self.checkroute(route,bgpEntry)
         if status==1 :
             route.flags['category'] = 'AADup'
+            bgpEntry.AAdup=bgpEntry.AAdup+1
         elif status==2 :
             route.flags['category'] = 'AADiff'
+            bgpEntry.AADiff=bgpEntry.AADiff+1
+
         elif status==3 :
             route.flags['category'] = 'WADup'
         elif status==4:

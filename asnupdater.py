@@ -3,6 +3,8 @@ from contextlib import closing
 from cymru.ip2asn.dns import DNSClient as ip2asn
 import api
 import bgpranking_web
+import numpy as np
+from scipy import percentile
 
 
 class ASRecord( object ):
@@ -44,9 +46,17 @@ class ASRecord( object ):
         rows = dbCursor.fetchall()
         return rows
 
-    def updateSecurisk(self,asn, risk):
+    def updateSecuRisk(self,asn, risk):
         self.db.execute(
             'update asn set secuRisk=? where asNumber=?',[risk, asn])
+
+    def getSecuRisk(self):
+        dbCursor = self.db.cursor()
+        dbCursor.execute(
+            'select secuRisk from asn where secuRisk>0'
+        )
+        rows=dbCursor.fetchall()
+        return rows
 
 class ASnupdater:
     def __init__(self):
@@ -83,7 +93,19 @@ class ASnupdater:
                             securisk=0.0
                         else:
                          securisk=result[4]
-                        db.updateSecurisk(asn,securisk)
+                         db.updateSecuRisk(asn,securisk)
+
+    def calcRiskIndex(self):
+        riskList=list()
+        with closing(ASRecord()) as db:
+            rows=db.getSecuRisk()
+        for row in rows:
+            (risk)=row
+            riskList.append(risk)
+        riskArray = np.asarray(riskList)
+        stdRisk=np.std(riskArray)
+        riskArray= riskArray/stdRisk
+        return riskArray
 
 
 
