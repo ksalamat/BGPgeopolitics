@@ -230,7 +230,7 @@ class BGPTable:
                 if pfx  in self.v4Table[peer]:
                     activePath = next((x for x in self.v4Table[peer][pfx].paths if x.active), None)
                     if activePath is not None:
-                        if routingEntry is None or (len(activePath.path) < len(routingEntry.path) and activePath.risk < routingEntry.risk):
+                        if routingEntry is None or routingEntry.peerASn == 0 or (len(activePath.path) < len(routingEntry.path) and activePath.risk < routingEntry.risk):
                             self.v4Routing[pfx]=activePath
         else:
             if pfx not in self.v6Routing.keys():
@@ -240,7 +240,7 @@ class BGPTable:
                 if pfx in self.v6Table[peer]:
                     activePath = next((x for x in self.v6Table[peer][pfx].paths if x.active), None)
                     if activePath is not None:
-                        if routingEntry is None or (len(activePath.path) < len(routingEntry.path) and activePath.risk < routingEntry.risk):
+                        if routingEntry is None or routingEntry.peerASn == 0 or (len(activePath.path) < len(routingEntry.path) and activePath.risk < routingEntry.risk):
                             self.v6Routing[pfx]=activePath
 
     def toJson(self):
