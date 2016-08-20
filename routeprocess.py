@@ -88,7 +88,7 @@ if __name__ == '__main__':
 
     print(nx.number_of_nodes(graphFlagger.G))
     print(nx.number_of_edges(graphFlagger.G))
-#    print(table.toJson())
+    print(table.toJson())
 #    thebytes = pickle.dump(table)
     tableDump.insert({'time': datetime.datetime.now().time().isoformat(),'tableDump':table.toJson()})
 
