@@ -22,6 +22,7 @@ This results into three main outcomes:
 }
 that says that the BGP announcement is a AADUP (Implicit withdrawal of a route and replacement by route that is identical
 in all path attributes., that it involve an overall risk value of 0.98 and that its paths goes from US to Ukraine (UA).
+
 2- A BGP table containing for each prefix (both IPv4 and IPv6) all paths announced along with the flags and performance
 informations like number of flaps, oe AADup, AADiff, WADup and WADiff and average up and down times.
  eg.
@@ -59,6 +60,7 @@ informations like number of flaps, oe AADup, AADiff, WADup and WADiff and averag
          },
     ],
  }
+
  3- A routing table that store for each prefix the best path measured based on minimal risk
 
  Flagged annoucements are stored in mongodb no-sql database (table BGPdump). The BGP  and  Routing tables are also stored
@@ -74,16 +76,24 @@ image has preinstalled all need components.
 Run the docker image : `docker run -i -t ksalamatian/bgpprojectbuild:latest /bin/bash` to open a shell into the docker.
 
 1- In the opened shell execute `mongod -smallfiles &` to launch mongod deamon.
+
 2- set the LD_LIBRARY_PATH, `LD_LIBRARY_PATH=/usr/local/lib` followed by `export LD_LIBRARY_PATH`
 3- launch the pyenv into bgpProject directory `source bgpProject/bin/activate`
+
 4- Go to bgpProject/BGPgeopolitics/ directory and launch `python routeprocess.py -start_time  -c 'rrc11' -start_time 438500000 -end_time 438500600`
 The -c parameter defines the collector and the -start_time and -end_time beginning and end of collections in unix time.
 
 #2- Stand Alone install
+
 1- install mongodb
+
 2- install sqlite3
+
 3- install bgpstream (look at https://bgpstream.caida.org/docs/install/bgpstream)
+
 4- install pyenv
+
 5- install python dependencies
+
 6- Follow the steps above.
 
