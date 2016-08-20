@@ -78,7 +78,10 @@ Run the docker image : `docker run -i -t ksalamatian/bgpprojectbuild:latest /bin
 1- In the opened shell execute `mongod -smallfiles &` to launch mongod deamon.
 
 2- set the LD_LIBRARY_PATH, `LD_LIBRARY_PATH=/usr/local/lib` followed by `export LD_LIBRARY_PATH`
+
 3- launch the pyenv into bgpProject directory `source bgpProject/bin/activate`
+
+4- Go to bgpProject/BGPgeopolitics/ and update the python code : "git pull"
 
 4- Go to bgpProject/BGPgeopolitics/ directory and launch `python routeprocess.py -start_time  -c 'rrc11' -start_time 438500000 -end_time 438500600`
 The -c parameter defines the collector and the -start_time and -end_time beginning and end of collections in unix time.
