@@ -38,6 +38,23 @@ class FlaggerProcess(threading.Thread):
         self.cont = False
         
 if __name__ == '__main__':
+    import argparse
+
+    parser = argparse.ArgumentParser()
+    parser.add_argument("-c", "--collector",
+                        help="collector name from where the log files are",
+                        default="rrc00")
+    parser.add_argument("-start_time", "--tstart",
+                        help="Start time",
+                        default=1438500000 )
+    parser.add_argument( "-end_time", "--tend",
+                        help="end time",
+                        default=1438500600 )
+
+    args = parser.parse_args()
+
+
+
     client = MongoClient()
     db = client['BGPdb']
     bgpDump = db['BGPdump']
@@ -55,8 +72,11 @@ if __name__ == '__main__':
 
     inFifo = Queue()
 #    start = 1438416600
-    start = 1438500000
-    bgpsource = BGPStream(inFifo, bgpDump, start, start + 500)
+    start = args.tstart
+    end = args.tend
+    collector=args.collector
+
+    bgpsource = BGPStream(inFifo, bgpDump, start, end, collector)
     fd = FlaggerProcess(flaggerPipe, inFifo, table)
 
     bgpsource.start()
