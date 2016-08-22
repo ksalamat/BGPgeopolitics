@@ -1,7 +1,8 @@
 import asnrecord
 from flagger import Flagger
-import sqlite3
 from contextlib import closing
+from asnupdater import calcSecuRiskStd
+
 
 
 class GeoFlagger(Flagger):
@@ -13,6 +14,8 @@ class GeoFlagger(Flagger):
             for row in rows:
                 (asn, country, secuRisk, geoRisk, perfRisk, otherRisk) = row
                 self.countrytable[asn] = [country, secuRisk, geoRisk, perfRisk, otherRisk]
+            self.stdRisk = calcSecuRiskStd()
+
 
     def prepare(self, route):
         route = super(GeoFlagger, self).flag(route)
@@ -21,6 +24,10 @@ class GeoFlagger(Flagger):
         if 'risk' not in route.flags:
             route.flags['risk'] = []
         return route
+
+    def fusion(self, geoRisk, perfRisk, secuRisk, otherRisk):
+        return secuRisk/self.stdRisk*0.5+geoRisk*0.5
+
         
     def flag(self, route):
         if not (route.message == 'announce'):
