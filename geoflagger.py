@@ -1,20 +1,21 @@
-import asnrecord
+from asnrecord import ASRecord
 from flagger import Flagger
 from contextlib import closing
-from asnupdater import calcSecuRiskStd
-
+from asnupdater import ASnupdater
+from contextlib import closing
 
 
 class GeoFlagger(Flagger):
 
     def __init__(self):
         self.countrytable={}
+        asnUpdater=ASnupdater()
         with closing(ASRecord()) as db:
             rows = db.dbGetObserved()
             for row in rows:
                 (asn, country, secuRisk, geoRisk, perfRisk, otherRisk) = row
                 self.countrytable[asn] = [country, secuRisk, geoRisk, perfRisk, otherRisk]
-            self.stdRisk = calcSecuRiskStd()
+            self.stdRisk = asnUpdater.calcSecuRiskStd()
 
 
     def prepare(self, route):
@@ -25,7 +26,7 @@ class GeoFlagger(Flagger):
             route.flags['risk'] = []
         return route
 
-    def fusion(self, geoRisk, perfRisk, secuRisk, otherRisk):
+    def fusionRisks(self, geoRisk, perfRisk, secuRisk, otherRisk):
         return secuRisk/self.stdRisk*0.5+geoRisk*0.5
 
         

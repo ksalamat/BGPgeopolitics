@@ -43,13 +43,13 @@ if __name__ == '__main__':
     parser = argparse.ArgumentParser()
     parser.add_argument("-c", "--collector",
                         help="collector name from where the log files are",
-                        default="rrc00")
+                        default=['rrc00'])
     parser.add_argument("-start_time", "--tstart",
                         help="Start time",
-                        default=1438500000 )
+                        default=1471759300 )
     parser.add_argument( "-end_time", "--tend",
                         help="end time",
-                        default=1438500600 )
+                        default=1471759900 )
 
     args = parser.parse_args()
 
