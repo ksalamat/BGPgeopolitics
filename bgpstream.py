@@ -16,15 +16,14 @@ class BGPMsgEncoder(json.JSONEncoder):
 
 
 class BGPStream(Thread, BGPSource):
-    def __init__(self, fifo, db, t_start, t_end=0, collectors = ['rrc11'], custom_filters = [('record-type', 'updates')]):
+    def __init__(self, fifo,  t_start, t_end=0, collectors = ['rrc11'], custom_filters = [('record-type', 'updates')]):
         Thread.__init__(self)
         BGPSource.__init__(self)
         self.fifo = fifo
-        self.collectors = collectors
+        self.collectors=collectors
         self.t_start = t_start
         self.t_end = t_end
         self.custom_filters = custom_filters
-        self.db=db
 
     def newMessage(self, elem):
         msg = BGPMessage()
@@ -50,16 +49,12 @@ class BGPStream(Thread, BGPSource):
         msg.fields['prefix'] = elem.fields['prefix']
         return msg
 
-    def save(self,msg):
-        tmpmsg=deepcopy(msg)
-        self.db.insert_one(tmpmsg.__dict__)
 
 
     def run(self):
         self.cont = True
         stream = _pybgpstream.BGPStream()
         record = _pybgpstream.BGPRecord()
-
         for collector in self.collectors:
             stream.add_filter('collector', collector)
         for name, value in self.custom_filters:
@@ -81,11 +76,9 @@ class BGPStream(Thread, BGPSource):
                         elif elem.type == 'A':
                             msg=self.convertAnnounce(elem)
                             self.fifo.put(msg)
-                            self.save(msg)
                         elif elem.type == 'W':
                             msg=self.convertWithdrawal(elem)
                             self.fifo.put(msg)
-                            self.save(msg)
                         elem = record.get_next_elem()
     
     def stop(self):

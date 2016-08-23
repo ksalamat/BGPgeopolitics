@@ -184,7 +184,6 @@ class BGPTable:
                 bestPath = self.v4Routing[prefix]
                 if bestPath.peerASn == peer:
                     self.v4Routing[prefix]=None
-                    self.updateBestPath(prefix)
         else:
             update.flags['category'] = 'UnknowPath'
 
@@ -198,31 +197,26 @@ class BGPTable:
                 bestPath = self.v6Routing[prefix]
                 if bestPath.peerASn == peer:
                     self.v4Routing[prefix]=None
-                    self.updateBestPath(prefix)
         else:
             update.flags['category'] = 'UnknowPath'
 
-
-    def withdraw(self, update):
+    def update(self, update):
         prefix = update.fields['prefix']
         network = ip_network(prefix)
-        if network.version == 4:
-           self.withdrawV4(update)
-        else:
-            self.withdrawV6(update)
-
-            
-    def update(self, update):
         if update.message == 'announce':
-            self.announce(update)
+            if network.version == 4:
+                self.announceV4(update)
+            else:
+                self.announceV6(update)
         elif update.message == 'withdrawal':
-            self.withdraw(update)
-        self.updateBestPath(update.fields['prefix'])
-        print(update.__dict__)
+            if network.version == 4:
+                self.withdrawV4(update)
+            else:
+                self.withdrawV6(update)
+        self.updateBestPath(update.fields['prefix'], network.version)
 
-    def updateBestPath(self, pfx):
-        network = ip_network(pfx)
-        if network.version == 4:
+    def updateBestPath(self, pfx, version):
+        if version == 4:
             if pfx not in self.v4Routing.keys():
                 self.v4Routing[pfx] = PathEntry(0, pfx)
             routingEntry=self.v4Routing[pfx]

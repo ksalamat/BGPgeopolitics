@@ -1,6 +1,5 @@
 from asnrecord import ASRecord
 from flagger import Flagger
-from contextlib import closing
 from asnupdater import ASnupdater
 from contextlib import closing
 
@@ -38,7 +37,7 @@ class GeoFlagger(Flagger):
         for asn in route.fields['asPath']:
             asn = asn.replace("{", "")
             asn = asn.replace("}", "")
-            if asn not in self.countrytable.keys():
+            if int(asn) not in self.countrytable.keys():
                 with closing(ASRecord()) as db:
                     res = db.dbQueryCountryRisk(asn)
                 if res == None:
@@ -50,7 +49,7 @@ class GeoFlagger(Flagger):
                 else:
                     [network, country, riskIndex, geoRisk, perfRisk, secuRisk, otherRisk]= res
             else:
-                [country, secuRisk, geoRisk, perfRisk, otherRisk] = self.countrytable[asn]
+                [country, secuRisk, geoRisk, perfRisk, otherRisk] = self.countrytable[int(asn)]
             risk = self.fusionRisks(geoRisk, perfRisk, secuRisk, otherRisk)
             if risk > maxRisk:
                 maxRisk = risk

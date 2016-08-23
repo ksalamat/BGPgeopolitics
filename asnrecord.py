@@ -1,5 +1,5 @@
 import sqlite3
-from contextlib import closing
+
 
 class ASRecord( object ):
     def __init__( self, dbname='resources/as.sqlite' ):

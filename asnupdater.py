@@ -1,8 +1,9 @@
-import asnrecord
+from asnrecord import ASRecord
 from cymru.ip2asn.dns import DNSClient as ip2asn
 import api
 import bgpranking_web
 import numpy as np
+from contextlib import closing
 
 class ASnupdater:
     def __init__(self):
