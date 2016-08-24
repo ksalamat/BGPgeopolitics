@@ -1,11 +1,10 @@
 from threading import Thread
-from queue import Queue
 import _pybgpstream
 from bgpsource import BGPSource
 from bgpmessage import BGPMessage
 from bson.json_util import dumps
 import json
-from copy import deepcopy
+from pyparsing import *
 
 
 class BGPMsgEncoder(json.JSONEncoder):
@@ -24,6 +23,12 @@ class BGPStream(Thread, BGPSource):
         self.t_start = t_start
         self.t_end = t_end
         self.custom_filters = custom_filters
+        LBRACE, RBRACE = map(Suppress, "{}")
+        wd = Word( nums )
+        wd_list = delimitedList(wd, delim=',')
+        brace_expr = Group(LBRACE + wd_list + RBRACE)
+        self.parser = ZeroOrMore(wd) + Optional(brace_expr) + ZeroOrMore(wd)
+
 
     def newMessage(self, elem):
         msg = BGPMessage()
@@ -32,12 +37,14 @@ class BGPStream(Thread, BGPSource):
                      , 'asn': int(elem.peer_asn)
         }
         return msg
-    
+
     def convertAnnounce(self, elem):
+
         msg = self.newMessage(elem)
         msg.message = 'announce'
         msg.time=elem.time
-        msg.fields['asPath'] = elem.fields['as-path'].split()
+#        msg.fields['asPath'] = elem.fields['as-path'].split()
+        msg.fields['asPath'] = self.parser.parseString(elem.fields['as-path']).asList()
         msg.fields['prefix'] = elem.fields['prefix']
         msg.fields['nextHop'] = elem.fields['next-hop']
         return msg
@@ -58,13 +65,13 @@ class BGPStream(Thread, BGPSource):
         for collector in self.collectors:
             stream.add_filter('collector', collector)
         for name, value in self.custom_filters:
-            stream.add_filter(name, value)            
+            stream.add_filter(name, value)
         stream.add_interval_filter(self.t_start, self.t_end)
         stream.start()
 
         # keep announces and withdrawal
         msg_type = ['A', 'W']
-        
+
         while self.cont and stream.get_next_record(record):
             if record.status == 'valid':
                 if record.type == 'update':
@@ -80,6 +87,6 @@ class BGPStream(Thread, BGPSource):
                             msg=self.convertWithdrawal(elem)
                             self.fifo.put(msg)
                         elem = record.get_next_elem()
-    
+
     def stop(self):
         self.cont = False
