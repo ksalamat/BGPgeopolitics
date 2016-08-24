@@ -83,9 +83,10 @@ if __name__ == '__main__':
 
     inFifo = Queue()
 #    start = 1438416600
-    start = args.tstart
-    end = args.tend
-    collector=args.collector
+    start = int(args.tstart)
+    end = int(args.tend)
+    collector=list()
+    collector.append(args.collector)
 
     bgpsource = BGPStream(inFifo, start, end, collector)
     fd = FlaggerProcess(flaggerPipe, inFifo, table, bgpDump)

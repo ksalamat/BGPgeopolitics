@@ -7,7 +7,7 @@ from contextlib import closing
 class GeoFlagger(Flagger):
 
     def __init__(self):
-        self.countrytable={}
+        self.countrytable = {}
         asnUpdater=ASnupdater()
         with closing(ASRecord()) as db:
             rows = db.dbGetObserved()
@@ -15,7 +15,6 @@ class GeoFlagger(Flagger):
                 (asn, country, secuRisk, geoRisk, perfRisk, otherRisk) = row
                 self.countrytable[asn] = [country, secuRisk, geoRisk, perfRisk, otherRisk]
             self.stdRisk = asnUpdater.calcSecuRiskStd()
-
 
     def prepare(self, route):
         route = super(GeoFlagger, self).flag(route)
@@ -28,33 +27,54 @@ class GeoFlagger(Flagger):
     def fusionRisks(self, geoRisk, perfRisk, secuRisk, otherRisk):
         return secuRisk/self.stdRisk*0.5+geoRisk*0.5
 
-        
     def flag(self, route):
         if not (route.message == 'announce'):
             return route
         self.prepare(route)
         maxRisk=0.0
         for asn in route.fields['asPath']:
-            asn = asn.replace("{", "")
-            asn = asn.replace("}", "")
-            if int(asn) not in self.countrytable.keys():
-                with closing(ASRecord()) as db:
-                    res = db.dbQueryCountryRisk(asn)
-                if res == None:
-                    country = '??'
-                    geoRisk = 0.0
-                    perfRisk = 0.0
-                    secuRisk = 0.0
-                    otherRisk = 0.0
-                else:
-                    [network, country, riskIndex, geoRisk, perfRisk, secuRisk, otherRisk]= res
+            if isinstance(asn, list):
+                sublist=[]
+                for subasn in asn:
+                    if int(subasn) not in self.countrytable.keys():
+                        with closing(ASRecord()) as db:
+                            res = db.dbQueryCountryRisk(subasn)
+                        if res is None:
+                            country = '??'
+                            geoRisk = 0.0
+                            perfRisk = 0.0
+                            secuRisk = 0.0
+                            otherRisk = 0.0
+                        else:
+                            [network, country, riskIndex, geoRisk, perfRisk, secuRisk, otherRisk] = res
+                    else:
+                        [country, secuRisk, geoRisk, perfRisk, otherRisk] = self.countrytable[int(subasn)]
+                    if country is None:
+                        country = '??'
+                    risk = self.fusionRisks(geoRisk, perfRisk, secuRisk, otherRisk)
+                    if risk > maxRisk:
+                        maxRisk = risk
+                    sublist.append(country)
+                route.flags['geoPath'].append(sublist)
             else:
-                [country, secuRisk, geoRisk, perfRisk, otherRisk] = self.countrytable[int(asn)]
-            if country is None:
-                country = '??'
-            risk = self.fusionRisks(geoRisk, perfRisk, secuRisk, otherRisk)
-            if risk > maxRisk:
-                maxRisk = risk
-            route.flags['geoPath'].append(country)
+                if int(asn) not in self.countrytable.keys():
+                    with closing(ASRecord()) as db:
+                        res = db.dbQueryCountryRisk(asn)
+                    if res is None:
+                        country = '??'
+                        geoRisk = 0.0
+                        perfRisk = 0.0
+                        secuRisk = 0.0
+                        otherRisk = 0.0
+                    else:
+                        [network, country, riskIndex, geoRisk, perfRisk, secuRisk, otherRisk]= res
+                else:
+                    [country, secuRisk, geoRisk, perfRisk, otherRisk] = self.countrytable[int(asn)]
+                if country is None:
+                    country = '??'
+                risk = self.fusionRisks(geoRisk, perfRisk, secuRisk, otherRisk)
+                if risk > maxRisk:
+                    maxRisk = risk
+                route.flags['geoPath'].append(country)
         route.flags['risk'] = maxRisk
         return route
