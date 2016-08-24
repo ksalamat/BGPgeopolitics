@@ -4,18 +4,16 @@ import networkx as nx
 
 from graphflagger import GraphFlagger
 from geoflagger import GeoFlagger
-from routingDynamicFlagger import RoutingDynamicFlagger
 from flaggerpipe import FlaggerPipe
 from bgpstream import BGPStream
 from bgptable import BGPTable
 from pymongo import MongoClient
-import datetime
-import luigi
-
+import time
+import gzip
 
 
 class FlaggerProcess(threading.Thread):
-    def __init__(self, flagger, fifo, bgptable,db):
+    def __init__(self, flagger, fifo, bgptable, db):
         threading.Thread.__init__(self)
         self.flagger = flagger
         self.fifo = fifo
@@ -70,22 +68,18 @@ if __name__ == '__main__':
 
     args = parser.parse_args()
 
-
-
     client = MongoClient()
     db = client['BGPdb']
     bgpDump = db['BGPdump']
-    tableDump=db['TableDump']
     G=nx.Graph()
 
     table = BGPTable()
     geoFlagger = GeoFlagger()
-
-#   graphFlagger=GraphFlagger(G,table)
+    graphFlagger=GraphFlagger(G, table)
 #    routingDynamicFlagger=RoutingDynamicFlagger(table)
     flaggerPipe = FlaggerPipe()
     flaggerPipe.append(geoFlagger)
-#    flaggerPipe.append(GraphFlagger)
+    flaggerPipe.append(graphFlagger)
 
     inFifo = Queue()
 #    start = 1438416600
@@ -94,7 +88,7 @@ if __name__ == '__main__':
     collector=args.collector
 
     bgpsource = BGPStream(inFifo, start, end, collector)
-    fd = FlaggerProcess(flaggerPipe, inFifo, table,bgpDump)
+    fd = FlaggerProcess(flaggerPipe, inFifo, table, bgpDump)
 
     bgpsource.start()
     fd.start()
@@ -103,9 +97,13 @@ if __name__ == '__main__':
     fd.join()
     bgpsource.stop()
 
-#    print(nx.number_of_nodes(graphFlagger.G))
-#    print(nx.number_of_edges(graphFlagger.G))
-    print(table.toJson())
+    print(nx.number_of_nodes(graphFlagger.G))
+    print(nx.number_of_edges(graphFlagger.G))
+#    print(table.toJson())
 
-    tableDump.insert({'time': datetime.datetime.now().time().isoformat(),'tableDump':table.toJson()})
+    with gzip.open('dumps/tabledumps'+str(int(time.time()))+'.gz', 'wb') as f:
+        f.write(table.toJson().encode())
+    f.close()
+    nx.write_gexf(G, 'dumps/graphdumps'+str(int(time.time()))+'.gexf')
+    client.close()
 

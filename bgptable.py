@@ -133,7 +133,7 @@ class BGPEntry:
                 self.WWDup += 1
                 update.flags['category'] = 'WWDup'
         else:
-            update.flags['category'] = 'UnknowPath'
+            update.flags['category'] = 'UnknownPath'
 
 
 
@@ -143,6 +143,15 @@ class BGPTable:
         self.v6Table = {}
         self.v4Routing = {}
         self.v6Routing = {}
+
+    def getPrefix(self, peer, pfx):
+        if peer in self.v4Table.keys():
+            if pfx in self.v4Table[peer]:
+                return self.v4Table[peer][pfx]
+        if peer in self.v6Table.keys():
+            if pfx in self.v6Table[peer]:
+                return self.v6Table[peer][pfx]
+        return None
 
     def getV4Prefix(self, peer, pfx):
         if peer not in self.v4Table.keys():
@@ -161,12 +170,12 @@ class BGPTable:
     def announceV4(self, update):
         peer = update.peer['asn']
         prefix = update.fields['prefix']
-        self.getV4Prefix(peer,prefix).update(update)
+        self.getV4Prefix(peer, prefix).update(update)
 
     def announceV6(self, update):
         peer = update.peer['asn']
         prefix = update.fields['prefix']
-        self.getV6Prefix(peer,prefix).update(update)
+        self.getV6Prefix(peer, prefix).update(update)
 
     def announce(self, update):
         network = ip_network(update.fields['prefix'])

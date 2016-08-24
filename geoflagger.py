@@ -50,6 +50,8 @@ class GeoFlagger(Flagger):
                     [network, country, riskIndex, geoRisk, perfRisk, secuRisk, otherRisk]= res
             else:
                 [country, secuRisk, geoRisk, perfRisk, otherRisk] = self.countrytable[int(asn)]
+            if country is None:
+                country = '??'
             risk = self.fusionRisks(geoRisk, perfRisk, secuRisk, otherRisk)
             if risk > maxRisk:
                 maxRisk = risk
