@@ -27,7 +27,7 @@ class GraphFlagger(Flagger):
             source.pop()
             edgeList = list(zip(source, dest))
             for (src, dst) in edgeList:
-                if isinstance(dst, list) and isinstance(src, str):
+                if isinstance(dst, list) and isinstance(src, int):
                     for subdst in dst:
                         if not (src == subdst):
                             if self.G.has_edge(src, subdst):
@@ -35,7 +35,7 @@ class GraphFlagger(Flagger):
                                 att['count'] += 1
                             else:
                                 self.G.add_edge(src, subdst, {'count': 1})
-                elif isinstance(src, list) and isinstance(dst, str):
+                elif isinstance(src, list) and isinstance(dst, int):
                     for subsrc in src:
                         if not (subsrc == dst):
                             if self.G.has_edge(subsrc, dst):
@@ -43,15 +43,15 @@ class GraphFlagger(Flagger):
                                 att['count'] += 1
                             else:
                                 self.G.add_edge(subsrc, dst, {'count': 1})
-                elif isinstance(src, str) and isinstance(dst, str):
+                elif isinstance(src, int) and isinstance(dst, int):
                     if not (src == dst):
                         if self.G.has_edge(src, dst):
                             att = self.G.get_edge_data(src, dst)
                             att['count'] += 1
                         else:
                             self.G.add_edge(src,dst, {'count': 1})
-                else:
-                    print('Two consecutive as-set in a path!')
+                    else:
+                        print('Two consecutive as-set in a path!')
         elif route.message == 'withdrawal':
             peer = route.peer['asn']
             prefix =route.fields['prefix']

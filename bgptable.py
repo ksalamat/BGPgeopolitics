@@ -191,8 +191,9 @@ class BGPTable:
             self.getV4Prefix(peer,prefix).withdraw(update)
             if prefix in self.v4Routing.keys():
                 bestPath = self.v4Routing[prefix]
-                if bestPath.peerASn == peer:
-                    self.v4Routing[prefix]=None
+                if not bestPath == None :
+                    if bestPath.peerASn == peer:
+                        self.v4Routing[prefix]=None
         else:
             update.flags['category'] = 'UnknowPath'
 
@@ -204,8 +205,9 @@ class BGPTable:
             self.getV6Prefix(peer,prefix).withdraw(update)
             if prefix in self.v6Routing.keys():
                 bestPath = self.v6Routing[prefix]
-                if bestPath.peerASn == peer:
-                    self.v4Routing[prefix]=None
+                if not bestPath == None:
+                    if bestPath.peerASn == peer:
+                        self.v4Routing[prefix]=None
         else:
             update.flags['category'] = 'UnknowPath'
 
